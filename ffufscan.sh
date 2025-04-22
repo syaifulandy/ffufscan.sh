@@ -13,12 +13,14 @@ if [ "$#" -lt 2 ]; then
   echo "  path     - Fuzzing direktori/path (default)"
   echo "  ext      - Fuzzing ekstensi file (contoh: indexFUZZ)"
   echo "  subdomain - Subdomain enumeration menggunakan vhost"
+  echo "  parameter - parameter enumeration"
   echo "  vhost    - Vhost enumeration menggunakan header Host"
   echo "Contoh:"
   echo "  $0 path http://target.com/FUZZ"
   echo "  $0 ext http://target.com/indexFUZZ"
   echo "  $0 vhost http://target.com"
   echo "  $0 subdomain target.com"
+  echo "  $0 param http://target.com:30241/admin/admin.php?FUZZ=key"
 
   exit 1
 fi
@@ -88,7 +90,12 @@ elif [ "$MODE" == "subdomain" ]; then
   SCHEME=$(echo "$FULL_URL" | grep -Eo '^https?')
   DOMAIN=$(echo "$FULL_URL" | sed -E 's#https?://([^/]+).*#\1#')
   URL="${SCHEME}://FUZZ.${DOMAIN}"
-
+elif [ "$MODE" == "param" ]; then
+  if [[ "$FULL_URL" != *FUZZ* ]]; then
+    handle_error "Mode 'param' memerlukan URL yang mengandung FUZZ pada posisi parameter."
+  fi
+  WORDLIST="/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt"
+  URL="$FULL_URL"
 
 elif [ "$MODE" == "vhost" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
