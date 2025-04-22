@@ -18,6 +18,8 @@ if [ "$#" -lt 2 ]; then
   echo "  $0 path http://target.com/FUZZ"
   echo "  $0 ext http://target.com/indexFUZZ"
   echo "  $0 vhost http://target.com"
+  echo "  $0 subdomain target.com"
+
   exit 1
 fi
 
