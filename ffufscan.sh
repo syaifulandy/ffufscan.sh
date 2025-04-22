@@ -24,7 +24,8 @@ if [ "$#" -lt 2 ]; then
 fi
 
 MODE="$1"
-RAW_URL="$2"
+FULL_URL="$2"
+RAW_URL=$(echo "$FULL_URL" | sed -E 's#(https?://[^/]+).*#\1#')
 THREADS=150
 OUTPUT="output.csv"
 RECURSION=false
@@ -78,9 +79,7 @@ if [ "$MODE" == "path" ]; then
     read -p "Masukkan ekstensi (misal: .php,.html): " EXTENSIONS
     EXTENSIONS="-e $EXTENSIONS"
   fi
-
-  # URL untuk path fuzzing
-  URL="${RAW_URL%/}/FUZZ"  # Hapus trailing slash jika ada dan tambah FUZZ ke path
+  URL="${FULL_URL}"
 elif [ "$MODE" == "ext" ]; then
   URL="${RAW_URL%/}FUZZ"  # Untuk ekstensi
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/web-extensions.txt"
