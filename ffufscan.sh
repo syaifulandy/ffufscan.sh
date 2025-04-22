@@ -85,7 +85,11 @@ elif [ "$MODE" == "ext" ]; then
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/web-extensions.txt"
 elif [ "$MODE" == "subdomain" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
-  URL="http://FUZZ.${RAW_URL#http://}"  # Membuat URL untuk subdomain
+  SCHEME=$(echo "$FULL_URL" | grep -Eo '^https?')
+  DOMAIN=$(echo "$FULL_URL" | sed -E 's#https?://([^/]+).*#\1#')
+  URL="${SCHEME}://FUZZ.${DOMAIN}"
+
+
 elif [ "$MODE" == "vhost" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
   # Extract domain dan port dari URL
