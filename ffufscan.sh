@@ -94,10 +94,18 @@ if [ "$MODE" == "path" ]; then
     ffuf_cmd="$ffuf_cmd -recursion -recursion-depth $DEPTH"
   fi
 elif [ "$MODE" == "ext" ]; then
-  URL="${RAW_URL%/}/FUZZ"  # Untuk ekstensi
+  # Memastikan URL sudah berisi FUZZ, jika tidak tambahkan
+  if [[ "$FULL_URL" != *"FUZZ"* ]]; then
+    handle_error "URL harus mengandung FUZZ untuk melakukan fuzzing ekstensi."
+  fi
+  # URL menjadi alamat pengguna tanpa perubahan, hanya mengganti FUZZ
+  URL="$FULL_URL"
+  # Tentukan wordlist ekstensi
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/web-extensions.txt"
+
   # Menyusun perintah ffuf
   ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+
 elif [ "$MODE" == "subdomain" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
   SCHEME=$(echo "$FULL_URL" | grep -Eo '^https?')
