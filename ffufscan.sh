@@ -94,7 +94,7 @@ if [ "$MODE" == "path" ]; then
     ffuf_cmd="$ffuf_cmd -recursion -recursion-depth $DEPTH"
   fi
 elif [ "$MODE" == "ext" ]; then
-  URL="${RAW_URL%/}FUZZ"  # Untuk ekstensi
+  URL="${RAW_URL%/}/FUZZ"  # Untuk ekstensi
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/web-extensions.txt"
   # Menyusun perintah ffuf
   ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
