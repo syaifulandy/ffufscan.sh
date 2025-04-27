@@ -10,17 +10,21 @@ handle_error() {
 if [ "$#" -lt 2 ]; then
   echo "Usage: $0 <mode> <url>"
   echo "Mode tersedia:"
-  echo "  path     - Fuzzing direktori/path (default)"
-  echo "  ext      - Fuzzing ekstensi file (contoh: indexFUZZ)"
-  echo "  subdomain - Subdomain enumeration menggunakan vhost"
-  echo "  parameter - parameter enumeration"
-  echo "  vhost    - Vhost enumeration menggunakan header Host"
+  echo "  path          - Fuzzing direktori/path (default)"
+  echo "  ext           - Fuzzing ekstensi file (contoh: indexFUZZ)"
+  echo "  subdomain     - Subdomain enumeration menggunakan vhost"
+  echo "  paramget      - parameter enumeration"
+  echo "  vhost         - Vhost enumeration menggunakan header Host"
+  echo "  parampostphp  - Mencari parameter valid dengan POST Method"
+  echo "  postphpcustom - Melakukan POST Method aplikasi PHP dengan custom wordlist dan lokasi FUZZ"
   echo "Contoh:"
   echo "  $0 path http://target.com/FUZZ"
   echo "  $0 ext http://target.com/indexFUZZ"
   echo "  $0 vhost http://target.com"
   echo "  $0 subdomain target.com"
-  echo "  $0 param http://target.com:30241/admin/admin.php?FUZZ=key"
+  echo "  $0 paramget http://target.com:30241/admin/admin.php?FUZZ=key"
+  echo "  $0 parampostphp http://target.com:30241/admin/admin.php"
+  echo "  $0 postphpcustom http://target.com:30241/admin/admin.php"
 
   exit 1
 fi
@@ -82,21 +86,33 @@ if [ "$MODE" == "path" ]; then
     EXTENSIONS="-e $EXTENSIONS"
   fi
   URL="${FULL_URL}"
+  # Menyusun perintah ffuf
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+  
+  # Jika recursion diaktifkan, tambahkan flag recursion dan depth
+  if [ "$RECURSION" == true ]; then
+    ffuf_cmd="$ffuf_cmd -recursion -recursion-depth $DEPTH"
+  fi
 elif [ "$MODE" == "ext" ]; then
   URL="${RAW_URL%/}FUZZ"  # Untuk ekstensi
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/web-extensions.txt"
+  # Menyusun perintah ffuf
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
 elif [ "$MODE" == "subdomain" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
   SCHEME=$(echo "$FULL_URL" | grep -Eo '^https?')
   DOMAIN=$(echo "$FULL_URL" | sed -E 's#https?://([^/]+).*#\1#')
   URL="${SCHEME}://FUZZ.${DOMAIN}"
-elif [ "$MODE" == "param" ]; then
+  # Menyusun perintah ffuf
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+elif [ "$MODE" == "paramget" ]; then
   if [[ "$FULL_URL" != *FUZZ* ]]; then
-    handle_error "Mode 'param' memerlukan URL yang mengandung FUZZ pada posisi parameter."
+    handle_error "Mode 'paramget' memerlukan URL yang mengandung FUZZ pada posisi parameter."
   fi
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt"
   URL="$FULL_URL"
-
+  # Menyusun perintah ffuf
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
 elif [ "$MODE" == "vhost" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
   # Extract domain dan port dari URL
@@ -109,8 +125,41 @@ elif [ "$MODE" == "vhost" ]; then
   
   # Pastikan header menggunakan FUZZ untuk subdomain
   EXTRA_FLAGS="$EXTRA_FLAGS -H 'Host: FUZZ.${DOMAIN}'"
+  # Menyusun perintah ffuf
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+elif [ "$MODE" == "parampostphp" ]; then
+  WORDLIST="/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt"
+  URL="$FULL_URL"
+  # Tentukan data POST untuk menggunakan FUZZ pada parameter
+  POST_DATA="FUZZ=key"
+  HEADER="Content-Type: application/x-www-form-urlencoded"
+
+  # Menyusun perintah ffuf dengan metode POST
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+elif [ "$MODE" == "postphpcustom" ]; then
+
+  # Menanyakan lokasi wordlist kustom
+  read -p "Masukkan path wordlist kustom: " CUSTOM_WORDLIST
+  if [ ! -f "$CUSTOM_WORDLIST" ]; then
+    handle_error "Wordlist tidak ditemukan: $CUSTOM_WORDLIST. Pastikan file wordlist ada di sistem."
+  fi
+
+  # Menanyakan POST_DATA kustom
+  read -p "Masukkan POST_DATA kustom (gunakan FUZZ untuk parameter yang ingin difuzzing): " CUSTOM_POST_DATA
+  if [[ ! "$CUSTOM_POST_DATA" == *"FUZZ"* ]]; then
+    handle_error "POST_DATA harus mengandung FUZZ sebagai tempat pengganti parameter."
+  fi
+
+  URL="$FULL_URL"
+  POST_DATA="$CUSTOM_POST_DATA"
+  WORDLIST="$CUSTOM_WORDLIST"
+  HEADER="Content-Type: application/x-www-form-urlencoded"
+
+  # Menyusun perintah ffuf dengan metode POST custom
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+
 else
-  handle_error "Mode tidak dikenali: $MODE. Gunakan 'path', 'ext', 'subdomain', atau 'vhost'."
+  handle_error "Mode tidak dikenali: $MODE. Cek Help"
 fi
 
 # Cek apakah wordlist ada
@@ -125,14 +174,6 @@ echo "URL: $URL"
 echo "Wordlist: $WORDLIST"
 echo "Thread: $THREADS"
 echo "Output: $OUTPUT"
-
-# Menyusun perintah ffuf
-ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
-
-# Jika recursion diaktifkan, tambahkan flag recursion dan depth
-if [ "$RECURSION" == true ]; then
-  ffuf_cmd="$ffuf_cmd -recursion -recursion-depth $DEPTH"
-fi
 
 # Eksekusi perintah ffuf
 echo "Executing command: $ffuf_cmd"
