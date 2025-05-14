@@ -26,7 +26,7 @@ if [ "$#" -lt 2 ]; then
   echo "  $0 paramget http://target.com:30241/admin/admin.php?FUZZ=key"
   echo "  $0 parampostphp http://target.com:30241/admin/admin.php"
   echo "  $0 postphpcustom http://target.com:30241/admin/admin.php"
-  echo "  $0 getcustom http://target.com:30241/reset_password.php?token=FUZZ -fr "report The provided token is invalid"
+  echo "  $0 getcustom http://target.com:30241/reset_password.php?token=FUZZ -fr 'report The provided token is invalid'"
 
   exit 1
 fi
