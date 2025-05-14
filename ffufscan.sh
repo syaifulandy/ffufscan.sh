@@ -27,7 +27,6 @@ if [ "$#" -lt 2 ]; then
   echo "  $0 parampostphp http://target.com:30241/admin/admin.php"
   echo "  $0 postphpcustom http://target.com:30241/admin/admin.php"
   echo "  $0 getcustom http://target.com:30241/reset_password.php?token=FUZZ -fr 'report The provided token is invalid'"
-
   exit 1
 fi
 
@@ -73,7 +72,7 @@ fi
 # Cek mode dan konfigurasi opsi tambahan
 if [ "$MODE" == "path" ]; then
   # Tanya apakah pakai recursion
-  read -p "Aktifkan recursion? (y/n, default: n): " RECURSION_ANSWER
+  read -p "Aktifkan recursion? (y/n, default: n):" RECURSION_ANSWER
   if [[ "$RECURSION_ANSWER" == "y" || "$RECURSION_ANSWER" == "Y" ]]; then
     RECURSION=true
     read -p "Masukkan depth recursion (default: 1): " DEPTH
