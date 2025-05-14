@@ -17,6 +17,7 @@ if [ "$#" -lt 2 ]; then
   echo "  vhost         - Vhost enumeration menggunakan header Host"
   echo "  parampostphp  - Mencari parameter valid dengan POST Method"
   echo "  postphpcustom - Melakukan POST Method aplikasi PHP dengan custom wordlist dan lokasi FUZZ"
+  echo "  getcustom     - Melakukan GET Method aplikasi dengan custom wordlist dan lokasi FUZZ"
   echo "Contoh:"
   echo "  $0 path http://target.com:3021/FUZZ"
   echo "  $0 ext http://target.com:3021/indexFUZZ"
@@ -25,6 +26,7 @@ if [ "$#" -lt 2 ]; then
   echo "  $0 paramget http://target.com:30241/admin/admin.php?FUZZ=key"
   echo "  $0 parampostphp http://target.com:30241/admin/admin.php"
   echo "  $0 postphpcustom http://target.com:30241/admin/admin.php"
+  echo "  $0 getcustom http://target.com:30241/reset_password.php?token=FUZZ -fr "report The provided token is invalid"
 
   exit 1
 fi
@@ -145,13 +147,11 @@ elif [ "$MODE" == "parampostphp" ]; then
   # Menyusun perintah ffuf dengan metode POST
   ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
 elif [ "$MODE" == "postphpcustom" ]; then
-
   # Menanyakan lokasi wordlist kustom
   read -p "Masukkan path wordlist kustom: " CUSTOM_WORDLIST
   if [ ! -f "$CUSTOM_WORDLIST" ]; then
     handle_error "Wordlist tidak ditemukan: $CUSTOM_WORDLIST. Pastikan file wordlist ada di sistem."
   fi
-
   # Menanyakan POST_DATA kustom
   read -p "Masukkan POST_DATA kustom (gunakan FUZZ untuk parameter yang ingin difuzzing): " CUSTOM_POST_DATA
   if [[ ! "$CUSTOM_POST_DATA" == *"FUZZ"* ]]; then
@@ -165,6 +165,20 @@ elif [ "$MODE" == "postphpcustom" ]; then
 
   # Menyusun perintah ffuf dengan metode POST custom
   ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+
+elif [ "$MODE" == "getcustom" ]; then
+  # Menanyakan lokasi wordlist kustom
+  read -p "Masukkan path wordlist kustom: " CUSTOM_WORDLIST
+  if [ ! -f "$CUSTOM_WORDLIST" ]; then
+    handle_error "Wordlist tidak ditemukan: $CUSTOM_WORDLIST. Pastikan file wordlist ada di sistem."
+  fi
+
+  URL="$FULL_URL"
+  WORDLIST="$CUSTOM_WORDLIST"
+
+  # Menyusun perintah ffuf dengan metode GET custom
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS"
+
 
 else
   handle_error "Mode tidak dikenali: $MODE. Cek Help"
