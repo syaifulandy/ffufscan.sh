@@ -88,7 +88,7 @@ if [ "$MODE" == "path" ]; then
   fi
   URL="${FULL_URL}"
   # Menyusun perintah ffuf
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"" 
   
   # Jika recursion diaktifkan, tambahkan flag recursion dan depth
   if [ "$RECURSION" == true ]; then
@@ -105,7 +105,7 @@ elif [ "$MODE" == "ext" ]; then
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/web-extensions.txt"
 
   # Menyusun perintah ffuf
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"" 
 
 elif [ "$MODE" == "subdomain" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
@@ -113,7 +113,7 @@ elif [ "$MODE" == "subdomain" ]; then
   DOMAIN=$(echo "$FULL_URL" | sed -E 's#https?://([^/]+).*#\1#')
   URL="${SCHEME}://FUZZ.${DOMAIN}"
   # Menyusun perintah ffuf
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36""
 elif [ "$MODE" == "paramget" ]; then
   if [[ "$FULL_URL" != *FUZZ* ]]; then
     handle_error "Mode 'paramget' memerlukan URL yang mengandung FUZZ pada posisi parameter."
@@ -121,7 +121,7 @@ elif [ "$MODE" == "paramget" ]; then
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt"
   URL="$FULL_URL"
   # Menyusun perintah ffuf
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36""
 elif [ "$MODE" == "vhost" ]; then
   WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
   # Extract domain dan port dari URL
@@ -135,7 +135,7 @@ elif [ "$MODE" == "vhost" ]; then
   # Pastikan header menggunakan FUZZ untuk subdomain
   EXTRA_FLAGS="$EXTRA_FLAGS -H 'Host: FUZZ.${DOMAIN}'"
   # Menyusun perintah ffuf
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36""
 elif [ "$MODE" == "parampostphp" ]; then
   WORDLIST="/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt"
   URL="$FULL_URL"
@@ -144,7 +144,7 @@ elif [ "$MODE" == "parampostphp" ]; then
   HEADER="Content-Type: application/x-www-form-urlencoded"
 
   # Menyusun perintah ffuf dengan metode POST
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36""
 elif [ "$MODE" == "postphpcustom" ]; then
   # Menanyakan lokasi wordlist kustom
   read -p "Masukkan path wordlist kustom: " CUSTOM_WORDLIST
@@ -163,7 +163,7 @@ elif [ "$MODE" == "postphpcustom" ]; then
   HEADER="Content-Type: application/x-www-form-urlencoded"
 
   # Menyusun perintah ffuf dengan metode POST custom
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -X POST -d \"$POST_DATA\" -H \"$HEADER\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36""
 
 elif [ "$MODE" == "getcustom" ]; then
   # Menanyakan lokasi wordlist kustom
@@ -176,7 +176,7 @@ elif [ "$MODE" == "getcustom" ]; then
   WORDLIST="$CUSTOM_WORDLIST"
 
   # Menyusun perintah ffuf dengan metode GET custom
-  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+  ffuf_cmd="ffuf -w \"$WORDLIST:FUZZ\" -u \"$URL\" -ic -v -t \"$THREADS\" -of csv -ac -o \"$OUTPUT\" $EXTRA_FLAGS $EXTENSIONS -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36""
 
 
 else
