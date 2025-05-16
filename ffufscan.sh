@@ -22,7 +22,7 @@ if [ "$#" -lt 2 ]; then
   echo "  $0 path http://target.com:3021/FUZZ"
   echo "  $0 ext http://target.com:3021/indexFUZZ"
   echo "  $0 vhost http://target.com:3021"
-  echo "  $0 subdomain target.com"
+  echo "  $0 subdomain http://target.com"
   echo "  $0 paramget http://target.com:30241/admin/admin.php?FUZZ=key"
   echo "  $0 parampostphp http://target.com:30241/admin/admin.php"
   echo "  $0 postphpcustom http://target.com:30241/admin/admin.php"
