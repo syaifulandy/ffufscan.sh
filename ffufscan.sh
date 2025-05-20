@@ -65,7 +65,7 @@ done
 command -v ffuf > /dev/null 2>&1 || handle_error "ffuf tidak ditemukan, pastikan ffuf terinstal di sistem."
 
 # Cek URL apakah valid (menggunakan curl)
-if ! curl --output /dev/null --silent --head --fail "$RAW_URL"; then
+if ! curl -k --output /dev/null --silent --head --fail "$RAW_URL"; then
   handle_error "URL tidak valid atau tidak dapat dijangkau: $RAW_URL"
 fi
 
