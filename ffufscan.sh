@@ -64,9 +64,12 @@ done
 # Pastikan ffuf terpasang
 command -v ffuf > /dev/null 2>&1 || handle_error "ffuf tidak ditemukan, pastikan ffuf terinstal di sistem."
 
-# Cek URL apakah valid (menggunakan curl)
-if ! curl -k --output /dev/null --silent --head --fail "$RAW_URL"; then
-  handle_error "URL tidak valid atau tidak dapat dijangkau: $RAW_URL"
+# Cek apakah server merespons
+HTTP_STATUS=$(curl -k -s -o /dev/null -w "%{http_code}" "$RAW_URL")
+if [ -z "$HTTP_STATUS" ]; then
+  handle_error "Tidak mendapat respons dari server: $RAW_URL"
+else
+  echo "[INFO] Server merespon dengan status code: $HTTP_STATUS"
 fi
 
 # Cek mode dan konfigurasi opsi tambahan
