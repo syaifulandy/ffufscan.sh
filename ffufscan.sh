@@ -30,6 +30,20 @@ if [ "$#" -lt 2 ]; then
   exit 1
 fi
 
+# --- gabung 3 wordlist kalau belum ada ---
+WL_DIR="/usr/share/seclists/Discovery/Web-Content"
+WL_COMBINED="$WL_DIR/wordlist_combined.txt"
+
+if [ ! -f "$WL_COMBINED" ]; then
+  echo "[*] Membuat wordlist gabungan di $WL_COMBINED"
+  cat "$WL_DIR/quickhits.txt" \
+      "$WL_DIR/directory-list-lowercase-2.3-small.txt" \
+      "$WL_DIR/raft-small-files.txt" \
+      | sort -u > "$WL_COMBINED" || handle_error "Gagal menggabungkan wordlist"
+  echo "[*] Selesai. Total baris unik: $(wc -l < "$WL_COMBINED")"
+fi
+
+
 MODE="$1"
 FULL_URL="$2"
 RAW_URL=$(echo "$FULL_URL" | sed -E 's#(https?://[^/]+).*#\1#')
@@ -38,7 +52,7 @@ OUTPUT="output.csv"
 RECURSION=false
 RECURSION_DEPTH=1
 USE_EXTENSIONS=false
-WORDLIST="/usr/share/seclists/Discovery/Web-Content/directory-list-lowercase-2.3-small.txt"
+WORDLIST="$WL_COMBINED"
 EXTENSIONS=""
 EXTRA_FLAGS=""
 
