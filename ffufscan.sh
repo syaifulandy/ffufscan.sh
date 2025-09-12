@@ -37,6 +37,7 @@ WL_COMBINED="$WL_DIR/wordlist_combined.txt"
 if [ ! -f "$WL_COMBINED" ]; then
   echo "[*] Membuat wordlist gabungan di $WL_COMBINED"
   cat "$WL_DIR/quickhits.txt" \
+      "$WL_DIR/common.txt" \
       "$WL_DIR/directory-list-lowercase-2.3-small.txt" \
        > "$WL_COMBINED" || handle_error "Gagal menggabungkan wordlist"
   echo "[*] Selesai. Total baris unik: $(wc -l < "$WL_COMBINED")"
