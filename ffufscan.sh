@@ -220,3 +220,57 @@ eval $ffuf_cmd
 # Parsing hasil: ambil hanya URL status 200
 echo -e "\n[+] Hasil URL yang ditemukan (status 200):"
 tail -n +2 "$OUTPUT" | awk -F, '$5 == 200 { print $2 }'
+
+# Pastikan file input ada
+if [[ ! -f "$OUTPUT" ]]; then
+  echo "[!] File $OUTPUT tidak ditemukan"
+  exit 1
+fi
+
+OUTPUT="output.csv"
+OUTPUT_BERSIH="output_bersih.csv"
+
+awk -F',' -v OFS=',' '
+NR==1{
+  # Header
+  print $0
+  next
+}
+{
+  # Kolom sesuai FFUF CSV:
+  # 1:FUZZ 2:url 3:redirectlocation 4:position 5:status_code
+  # 6:content_length 7:content_words 8:content_lines 9:content_type
+  # 10:duration 11:resultfile 12:Ffufhash
+
+  status=$5; rloc=$3; clen=$6; words=$7; lines=$8
+
+  # trim spasi
+  gsub(/^ +| +$/, "", status)
+  gsub(/^ +| +$/, "", rloc)
+  gsub(/^ +| +$/, "", clen)
+  gsub(/^ +| +$/, "", words)
+  gsub(/^ +| +$/, "", lines)
+
+  key=""
+
+  # Kelompok redirect (30x) → unik per status + redirectlocation
+  if (status ~ /^30[12378]$/ && rloc != "") {
+    key = "REDIR|" status "|" rloc
+  }
+  # Status 200 → unik per words + lines
+  else if (status == "200") {
+    key = "OK|" words "|" lines
+  }
+  # Lainnya → kombinasi status + size + words + lines
+  else {
+    key = "GEN|" status "|" clen "|" words "|" lines
+  }
+
+  if (!(key in seen)) {
+    print $0
+    seen[key]=1
+  }
+}' "$OUTPUT" > "$OUTPUT_BERSIH"
+
+echo "[+] Dedupe selesai: $OUTPUT_BERSIH"
+
