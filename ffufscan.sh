@@ -3,7 +3,6 @@
 # ==========================================
 # FFUF Scanner Final (Redirect Grouping Safe)
 # Output Bersih Konsisten + No Data Loss
-# Redirect Dedup + 200 Similar Size Grouping
 # ==========================================
 
 handle_error() {
@@ -15,7 +14,7 @@ handle_error() {
 # Usage
 # ==============================
 if [ "$#" -lt 2 ]; then
-  echo "Usage: $0 <mode> <url>"
+  echo "Usage: $0 <mode> <url> [options]"
   echo ""
   echo "Mode:"
   echo "  path      - directory fuzzing"
@@ -24,8 +23,13 @@ if [ "$#" -lt 2 ]; then
   echo "  vhost     - Host: FUZZ.domain.com"
   echo "  paramget  - ?FUZZ=value"
   echo ""
-  echo "Example:"
+  echo "Shortcut:"
+  echo "  -r N      = -recursion -recursion-depth N"
+  echo ""
+  echo "Examples:"
   echo "  $0 path https://target.com/FUZZ"
+  echo "  $0 path https://target.com/FUZZ -r 2"
+  echo "  $0 path https://target.com/FUZZ -e .php,.bak"
   exit 1
 fi
 
@@ -37,7 +41,6 @@ FULL_URL="$2"
 RAW_URL=$(echo "$FULL_URL" | sed -E 's#(https?://[^/]+).*#\1#')
 
 THREADS=150
-
 OUTPUT_RAW="output.csv"
 OUTPUT_CLEAN="output_bersih.csv"
 
@@ -61,14 +64,22 @@ WORDLIST="$WL_COMBINED"
 EXTRA_FLAGS=""
 
 # ==============================
-# Parse Extra Options
+# Parse Extra Options + Shortcut -r
 # ==============================
 shift 2
-while [ "$#" -gt 0 ]; do
+
+while [ $# -gt 0 ]; do
   case "$1" in
-    -fs) EXTRA_FLAGS="$EXTRA_FLAGS -fs $2"; shift 2 ;;
-    -mc) EXTRA_FLAGS="$EXTRA_FLAGS -mc $2"; shift 2 ;;
-    *) echo "[WARN] Unknown option: $1"; shift ;;
+    -r)
+      DEPTH="$2"
+      EXTRA_FLAGS="$EXTRA_FLAGS -recursion -recursion-depth $DEPTH"
+      shift 2
+      ;;
+
+    *)
+      EXTRA_FLAGS="$EXTRA_FLAGS $1"
+      shift
+      ;;
   esac
 done
 
@@ -140,10 +151,10 @@ echo ""
 echo "[+] Raw output saved: $OUTPUT_RAW"
 
 # ======================================================
-# Step 2: Output Bersih Konsisten + Redirect Grouping FIX
+# Step 2: Output Bersih Konsisten + Redirect Grouping
 # ======================================================
 
-echo "[*] Cleaning output (NO redirect loss + NO duplicates)..."
+echo "[*] Cleaning output (NO redirect loss)..."
 
 awk -F',' -v OFS=',' '
 
@@ -173,7 +184,7 @@ NR==1 {
   }
 
   # ==========================
-  # Rule 2: Redirect grouping + Deduplicate
+  # Rule 2: Redirect grouping (NO DROP)
   # ==========================
   if (status ~ /^30[12378]$/ && rloc!="") {
 
@@ -187,39 +198,37 @@ NR==1 {
 
     group="FINAL_" final_status "_SIZE_" final_size
 
-    # Deduplicate identical redirect rows
-    redir_key="R|"url"|"status"|"rloc"|"group
-
-    if (!(redir_key in seen_redir)) {
+    # Remove exact duplicate redirect rows
+    dupkey="REDIR|" url "|" group
+    if (!(dupkey in seen)) {
       print url,rloc,status,clen,words,lines,group
-      seen_redir[redir_key]=1
+      seen[dupkey]=1
     }
     next
   }
 
   # ==========================
-  # Rule 3: Status 200 grouping (±10 bytes)
+  # Rule 3: Status 200 grouping with tolerance
+  # words+lines same AND length diff <=10 => SAME
   # ==========================
   if (status=="200") {
 
-    base="OK|"words"|"lines
+    base="OK|" words "|" lines
 
-    if (!(base in base_len)) {
-      base_len[base]=clen
-      key=base
-    }
-    else {
-      if (abs(clen - base_len[base]) <= 10) {
-        key=base
-      }
-      else {
-        key=base"|LEN"clen
+    found=0
+    for (k in oklen) {
+      split(k,tmp,"|")
+      if (tmp[2]==words && tmp[3]==lines) {
+        if (abs(clen-oklen[k]) <= 10) {
+          found=1
+          break
+        }
       }
     }
 
-    if (!(key in seen_ok)) {
+    if (!found) {
+      oklen[base]=clen
       print url,rloc,status,clen,words,lines,"UNIQUE_200"
-      seen_ok[key]=1
     }
     next
   }
@@ -228,10 +237,9 @@ NR==1 {
   # Rule 4: Other status dedupe
   # ==========================
   key="GEN|" status "|" clen "|" words "|" lines
-
-  if (!(key in seen_other)) {
+  if (!(key in seen)) {
     print url,rloc,status,clen,words,lines,"UNIQUE_OTHER"
-    seen_other[key]=1
+    seen[key]=1
   }
 
 }
