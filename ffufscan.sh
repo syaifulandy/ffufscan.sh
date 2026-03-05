@@ -106,13 +106,13 @@ elif [ "$MODE" == "ext" ]; then
   URL="$FULL_URL"
 
 elif [ "$MODE" == "subdomain" ]; then
-  WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+  WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
   SCHEME=$(echo "$FULL_URL" | grep -Eo '^https?')
   DOMAIN=$(echo "$FULL_URL" | sed -E 's#https?://([^/]+).*#\1#')
   URL="${SCHEME}://FUZZ.${DOMAIN}"
 
 elif [ "$MODE" == "vhost" ]; then
-  WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+  WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
   DOMAIN=$(echo "$RAW_URL" | awk -F[/:] '{print $4}')
   URL="$RAW_URL/"
   EXTRA_FLAGS="$EXTRA_FLAGS -H \"Host: FUZZ.${DOMAIN}\""
