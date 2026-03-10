@@ -112,10 +112,12 @@ elif [ "$MODE" == "subdomain" ]; then
   URL="${SCHEME}://FUZZ.${DOMAIN}"
 
 elif [ "$MODE" == "vhost" ]; then
-  WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
-  DOMAIN=$(echo "$RAW_URL" | awk -F[/:] '{print $4}')
+  WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+  # Mengambil domain tanpa http/https untuk header
+  DOMAIN=$(echo "$RAW_URL" | sed -E 's#https?://##' | sed 's#/##g')
   URL="$RAW_URL/"
-  EXTRA_FLAGS="$EXTRA_FLAGS -H \"Host: FUZZ.${DOMAIN}\""
+  # Perhatikan: Hapus tanda petik di dalam string agar tidak terbawa sebagai literal
+  EXTRA_FLAGS="$EXTRA_FLAGS -H Host:FUZZ.${DOMAIN}"
 
 elif [ "$MODE" == "paramget" ]; then
   [[ "$FULL_URL" != *FUZZ* ]] && handle_error "Mode paramget butuh FUZZ"
