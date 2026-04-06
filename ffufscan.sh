@@ -37,8 +37,11 @@ FULL_URL="$2"
 RAW_URL=$(echo "$FULL_URL" | sed -E 's#(https?://[^/]+).*#\1#')
 
 THREADS=150
-OUTPUT_RAW="output.csv"
-OUTPUT_CLEAN="output_bersih.csv"
+SAFE_NAME=$(echo "$FULL_URL" | sed -E 's#https?://##; s#[/?]#_#g; s#[^a-zA-Z0-9._-]#_#g')
+
+OUTPUT_RAW="${SAFE_NAME}_output.csv"
+OUTPUT_CLEAN="${SAFE_NAME}_output_bersih.csv"
+
 USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126 Safari/537.36"
 
 # Wordlist Setup
