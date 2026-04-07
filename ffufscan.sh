@@ -117,7 +117,7 @@ echo "Flags    : $EXTRA_FLAGS"
 ffuf -w "$WORDLIST:FUZZ" \
      -u "$URL" \
      -t "$THREADS" \
-     -ic -ac \
+     -ic \
      -of csv -o "$OUTPUT_RAW" \
      -H "User-Agent: $USER_AGENT" \
      $EXTRA_FLAGS
