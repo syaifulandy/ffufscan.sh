@@ -74,11 +74,11 @@ if [ "$MODE" == "vhost" ] || [ "$MODE" == "subdomain" ]; then
     fi
     
     if [ "$MODE" == "vhost" ]; then
-        WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+        WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
         URL="$RAW_URL/"
         EXTRA_FLAGS="-H Host:FUZZ.${TARGET_DOMAIN} $@"
     else
-        WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt"
+        WORDLIST="/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt"
         SCHEME=$(echo "$RAW_URL" | grep -Eo '^https?')
         URL="${SCHEME}://FUZZ.${TARGET_DOMAIN}"
         EXTRA_FLAGS="$@"
