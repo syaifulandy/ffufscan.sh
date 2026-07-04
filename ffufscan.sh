@@ -148,13 +148,22 @@ NR==1 {
     display = url
   }
 
+  # ========================================================
+  # DEDUPLIKASI RAW OUTPUT FFUF (Fokus Utama Perbaikan)
+  # Jika status, size, words, dan lines sama persis, langsung skip.
+  # ========================================================
+  exact_key = status "|" clen "|" words "|" lines
+  if (seen_exact[exact_key]++) {
+    next
+  }
+
   # 1. Keep 403 (Penting buat Pentest)
   if (status == "403") {
     print display, status, clen, rloc, "DIRECT_403"
     next
   }
 
-  # 2. Redirect Grouping via CURL (PENTING!)
+  # 2. Redirect Grouping via CURL + handling code 403 Forbidden (PENTING!)
   if (status ~ /^30[12378]$/) {
     # Check final destination
     cmd = "curl -k -s -L -o /dev/null --max-time 2 -w \"%{http_code}_%{size_download}\" \"" url "\""
@@ -163,7 +172,13 @@ NR==1 {
     
     if (res == "") res = "TIMEOUT_0"
     
-    # Grouping: Jika banyak vhost redirect ke page yang sama (status & size sama), ringkas.
+    # PERBAIKAN UTAMA: Jika hasil akhirnya ternyata 403, LANGSUNG LOLOSKAN tanpa grouping!
+    if (res ~ /^403_/) {
+      print display, status, clen, rloc, "FINAL_" res
+      next
+    }
+    
+    # Sisa status lainnya (seperti berakhir di 200/404) tetap masuk ke logika grouping semula
     group_key = "REDIR_TO_" res
     if (!(seen[group_key]++)) {
       print display, status, clen, rloc, "FINAL_" res
