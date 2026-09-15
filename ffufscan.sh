@@ -54,6 +54,7 @@ if [ ! -f "$WL_COMBINED" ] && [ "$MODE" == "path" ]; then
   cat "$WL_DIR/quickhits.txt" \
       "$WL_DIR/common.txt" \
       "$WL_DIR/raft-small-directories.txt" \
+      "$WL_DIR/api/api-endpoints.txt" \
   | sort -u > "$WL_COMBINED" || handle_error "Gagal buat wordlist"
 fi
 
