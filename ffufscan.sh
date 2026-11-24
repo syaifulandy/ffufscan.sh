@@ -46,6 +46,7 @@ USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126 Safari/537.36"
 
 # Wordlist Setup
 WL_DIR="/usr/share/seclists/Discovery/Web-Content"
+WL_FUZZ="/usr/share/seclists/Fuzzing"
 WL_COMBINED="$WL_DIR/wordlist_combined.txt"
 
 # Create combined wordlist if missing
@@ -55,6 +56,7 @@ if [ ! -f "$WL_COMBINED" ] && [ "$MODE" == "path" ]; then
       "$WL_DIR/common.txt" \
       "$WL_DIR/raft-small-directories.txt" \
       "$WL_DIR/api/api-endpoints.txt" \
+      "$WL_FUZZ/fuzz-Bo0oM-friendly.txt" \
   | sort -u > "$WL_COMBINED" || handle_error "Gagal buat wordlist"
 fi
 
